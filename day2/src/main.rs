@@ -25,6 +25,7 @@ where
 struct Location {
     depth: i32,
     position: i32,
+    aim: i32,
 }
 
 impl Location {
@@ -34,20 +35,24 @@ impl Location {
         let d = data.1.parse::<i32>().unwrap();
         match i {
             "forward" => Location {
-                depth: self.depth + d,
-                position: self.position,
+                depth: self.depth + (self.aim * d),
+                position: self.position + d,
+                aim: self.aim,
             },
             "down" => Location {
                 depth: self.depth,
-                position: self.position + d,
+                position: self.position,
+                aim: self.aim + d,
             },
             "up" => Location {
                 depth: self.depth,
-                position: self.position - d,
+                position: self.position,
+                aim: self.aim - d,
             },
             _ => Location {
                 depth: self.depth,
                 position: self.position,
+                aim: self.aim,
             },
         }
     }
@@ -59,6 +64,7 @@ fn main() {
     let init_loc = Location {
         depth: 0,
         position: 0,
+        aim: 0,
     };
     if let Ok(lines) = file_lines {
         let data: Location = lines
