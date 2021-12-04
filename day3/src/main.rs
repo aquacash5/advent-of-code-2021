@@ -38,9 +38,9 @@ fn main() {
             .map(|c| c.into_iter().counts())
             .map(|c| {
                 if c[&'0'] > c[&'1'] {
-                    (String::from("0"), String::from("1"))
+                    ('0', '1')
                 } else {
-                    (String::from("1"), String::from("0"))
+                    ('1', '0')
                 }
             })
             .fold((String::from(""), String::from("")), |v, (g, e)| {
