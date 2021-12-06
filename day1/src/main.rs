@@ -30,7 +30,7 @@ fn main() {
             .filter_map(Result::ok)
             .filter_map(|s| s.parse::<i32>().ok())
             // Enable to solve part 2
-            // .tuple_windows::<(_, _, _)>()
+            // .tuple_windows()
             // .map(|(a, b, c)| a + b + c)
             .tuple_windows()
             .map(|(a, b)| if a < b { 1 } else { 0 })
