@@ -75,6 +75,10 @@ impl From<String> for Pair {
     }
 }
 
+fn unit(i: i32) -> i32 {
+    i / i.abs()
+}
+
 fn main() {
     let cli = Cli::from_args();
     let file_lines = read_lines(cli.input);
@@ -82,7 +86,7 @@ fn main() {
         let data: Vec<_> = lines
             .filter_map(Result::ok)
             .map(|i| Pair::from(i))
-            .filter(|p| p.match_x() || p.match_y())
+            // .filter(|p| p.match_x() || p.match_y())
             .collect();
         let size: usize = (data.iter().map(|p| p.max_value()).max().unwrap() + 1) as usize;
         let i_size: i32 = size as i32;
@@ -98,7 +102,7 @@ fn main() {
                 for y in s.y..(e.y + 1) {
                     field[(pair.start.x * i_size + y) as usize] += 1;
                 }
-            } else {
+            } else if pair.match_y() {
                 let (s, e) = if pair.start.x > pair.end.x {
                     (pair.end, pair.start)
                 } else {
@@ -107,6 +111,17 @@ fn main() {
 
                 for x in s.x..(e.x + 1) {
                     field[(x * i_size + pair.start.y) as usize] += 1;
+                }
+            } else {
+                let (s, e) = if pair.start.x > pair.end.x {
+                    (pair.start, pair.end)
+                } else {
+                    (pair.end, pair.start)
+                };
+                let slop = unit(e.y - s.y);
+
+                for step in 0..((s.x - e.x) + 1) {
+                    field[((s.x + (step * -1)) * i_size + (s.y + (step * slop))) as usize] += 1;
                 }
             }
         }
