@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "example", about = "An example of StructOpt usage.")]
+#[structopt(name = "Day6", about = "Lanternfish")]
 struct Cli {
     /// Input file
     #[structopt(parse(from_os_str))]
