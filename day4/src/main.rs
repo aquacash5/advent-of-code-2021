@@ -2,11 +2,14 @@ use itertools::Itertools;
 use std::collections::BTreeSet;
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::iter::Iterator;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
+const BINGO_SIZE: usize = 5;
+
 #[derive(Debug, StructOpt)]
-#[structopt(name = "example", about = "An example of StructOpt usage.")]
+#[structopt(name = "Day4", about = "Giant Squid")]
 struct Cli {
     /// Input file
     #[structopt(parse(from_os_str))]
@@ -23,20 +26,23 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn get_column(board: &[[i32; 5]; 5], nth: usize) -> [i32; 5] {
-    let mut col = [0; 5];
+fn get_column(board: &[[u32; BINGO_SIZE]; BINGO_SIZE], nth: usize) -> [u32; BINGO_SIZE] {
+    let mut col = [0; BINGO_SIZE];
     for (i, row) in board.iter().enumerate() {
         col[i] = row[nth];
     }
     col
 }
 
-fn score_board(board: &[[i32; 5]; 5], set: &BTreeSet<i32>) -> i32 {
+fn score_board(board: &[[u32; BINGO_SIZE]; BINGO_SIZE], set: &BTreeSet<u32>) -> u32 {
     board.iter().flatten().filter(|i| !set.contains(i)).sum()
 }
 
-fn find_winning_board(boards: &Vec<[[i32; 5]; 5]>, results: &Vec<i32>, print: bool) -> usize {
-    let mut result_set: BTreeSet<i32> = BTreeSet::new();
+fn find_winning_board(
+    boards: &Vec<[[u32; BINGO_SIZE]; BINGO_SIZE]>,
+    results: &Vec<u32>,
+) -> (usize, u32) {
+    let mut result_set: BTreeSet<u32> = BTreeSet::new();
 
     for result_pos in 0..results.len() {
         result_set.insert(results[result_pos]);
@@ -44,33 +50,19 @@ fn find_winning_board(boards: &Vec<[[i32; 5]; 5]>, results: &Vec<i32>, print: bo
             for row in board {
                 if row.iter().all(|i| result_set.contains(i)) {
                     let score = score_board(&board, &result_set);
-                    if print {
-                        println!("Results: {:?}", result_set);
-                        println!("Row: {:?}", row);
-                        println!("Last Value: {:?}", results[result_pos]);
-                        println!("Score: {:?}", score);
-                        println!("Final Score: {:?}", score * results[result_pos]);
-                    }
-                    return board_number;
+                    return (board_number, score * results[result_pos]);
                 }
             }
-            for col_num in 0..5 {
+            for col_num in 0..BINGO_SIZE {
                 let col = get_column(&board, col_num);
                 if col.iter().all(|i| result_set.contains(i)) {
                     let score = score_board(&board, &result_set);
-                    if print {
-                        println!("Results: {:?}", result_set);
-                        println!("Column: {:?}", col);
-                        println!("Last Value: {:?}", results[result_pos]);
-                        println!("Score: {:?}", score);
-                        println!("Final Score: {:?}", score * results[result_pos]);
-                    }
-                    return board_number;
+                    return (board_number, score * results[result_pos]);
                 }
             }
         }
     }
-    return 0;
+    return (0, 0);
 }
 
 fn main() {
@@ -78,25 +70,29 @@ fn main() {
     let file_lines = read_lines(cli.input);
     if let Ok(lines) = file_lines {
         let data: Vec<_> = lines.filter_map(Result::ok).collect();
-        let results: Vec<i32> = data[0]
+        let results: Vec<u32> = data[0]
             .split(&",")
-            .map(|s| s.parse::<i32>().unwrap())
+            .map(|s| s.parse::<u32>().unwrap())
             .collect();
-        let mut boards: Vec<[[i32; 5]; 5]> = Vec::new();
+        let mut boards: Vec<[[u32; BINGO_SIZE]; BINGO_SIZE]> = Vec::new();
         for board in &data.into_iter().skip(1).chunks(6) {
-            let mut v = [[0; 5]; 5];
+            let mut v = [[0; BINGO_SIZE]; BINGO_SIZE];
             for (i, row) in board.skip(1).enumerate() {
-                let items = row.split_whitespace().map(|s| s.parse::<i32>().unwrap());
+                let items = row.split_whitespace().map(|s| s.parse::<u32>().unwrap());
                 for (j, col) in items.enumerate() {
                     v[i][j] = col;
                 }
             }
             boards.push(v);
         }
+        let (_, part_1) = find_winning_board(&boards, &results);
         // Part 2
-        // for _ in 1..boards.len() {
-        //     boards.remove(find_winning_board(&boards, &results, false));
-        // }
-        find_winning_board(&boards, &results, true);
+        for _ in 1..boards.len() {
+            let (win_board, _) = find_winning_board(&boards, &results);
+            boards.remove(win_board);
+        }
+        let (_, part_2) = find_winning_board(&boards, &results);
+        println!("Part 1: {:?}", part_1);
+        println!("Part 2: {:?}", part_2);
     }
 }
