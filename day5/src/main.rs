@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::cmp;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -6,7 +5,7 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "example", about = "An example of StructOpt usage.")]
+#[structopt(name = "Day5", about = "Hydrothermal Venture")]
 struct Cli {
     /// Input file
     #[structopt(parse(from_os_str))]
@@ -79,56 +78,69 @@ fn unit(i: i32) -> i32 {
     i / i.abs()
 }
 
+fn create_field_map(size: usize, data: &Vec<Pair>) -> Vec<u32> {
+    let mut field = vec![0u32; size * size];
+    let i_size = size as i32;
+    for pair in data {
+        if pair.match_x() {
+            let (s, e) = if pair.start.y > pair.end.y {
+                (pair.end, pair.start)
+            } else {
+                (pair.start, pair.end)
+            };
+
+            for y in s.y..(e.y + 1) {
+                field[(pair.start.x * i_size + y) as usize] += 1;
+            }
+        } else if pair.match_y() {
+            let (s, e) = if pair.start.x > pair.end.x {
+                (pair.end, pair.start)
+            } else {
+                (pair.start, pair.end)
+            };
+
+            for x in s.x..(e.x + 1) {
+                field[(x * i_size + pair.start.y) as usize] += 1;
+            }
+        } else {
+            let (s, e) = if pair.start.x > pair.end.x {
+                (pair.start, pair.end)
+            } else {
+                (pair.end, pair.start)
+            };
+            let slop = unit(e.y - s.y);
+
+            for step in 0..((s.x - e.x) + 1) {
+                field[((s.x + (step * -1)) * i_size + (s.y + (step * slop))) as usize] += 1;
+            }
+        }
+    }
+    field
+}
+
 fn main() {
     let cli = Cli::from_args();
     let file_lines = read_lines(cli.input);
     if let Ok(lines) = file_lines {
-        let data: Vec<_> = lines
+        let part_2_data: Vec<_> = lines
             .filter_map(Result::ok)
             .map(|i| Pair::from(i))
-            // .filter(|p| p.match_x() || p.match_y())
             .collect();
-        let size: usize = (data.iter().map(|p| p.max_value()).max().unwrap() + 1) as usize;
-        let i_size: i32 = size as i32;
-        let mut field = vec![0; size * size];
-        for pair in &data {
-            if pair.match_x() {
-                let (s, e) = if pair.start.y > pair.end.y {
-                    (pair.end, pair.start)
-                } else {
-                    (pair.start, pair.end)
-                };
-
-                for y in s.y..(e.y + 1) {
-                    field[(pair.start.x * i_size + y) as usize] += 1;
-                }
-            } else if pair.match_y() {
-                let (s, e) = if pair.start.x > pair.end.x {
-                    (pair.end, pair.start)
-                } else {
-                    (pair.start, pair.end)
-                };
-
-                for x in s.x..(e.x + 1) {
-                    field[(x * i_size + pair.start.y) as usize] += 1;
-                }
-            } else {
-                let (s, e) = if pair.start.x > pair.end.x {
-                    (pair.start, pair.end)
-                } else {
-                    (pair.end, pair.start)
-                };
-                let slop = unit(e.y - s.y);
-
-                for step in 0..((s.x - e.x) + 1) {
-                    field[((s.x + (step * -1)) * i_size + (s.y + (step * slop))) as usize] += 1;
-                }
-            }
-        }
-        let count = &field.iter().filter(|i| i > &&1).count();
-        // for line in &field.iter().chunks(size) {
-        //     println!("{:?}", line.collect::<Vec<&i32>>())
-        // }
-        println!("Count: {:?}", count);
+        let part_1_data: Vec<_> = part_2_data
+            .iter()
+            .cloned()
+            .filter(|p| p.match_x() || p.match_y())
+            .collect();
+        let size: usize = (part_2_data.iter().map(|p| p.max_value()).max().unwrap() + 1) as usize;
+        let part_1 = create_field_map(size, &part_1_data)
+            .into_iter()
+            .filter(|i| *i > 1)
+            .count();
+        let part_2 = create_field_map(size, &part_2_data)
+            .into_iter()
+            .filter(|i| *i > 1)
+            .count();
+        println!("Part 1: {:?}", part_1);
+        println!("Part 2: {:?}", part_2);
     }
 }
