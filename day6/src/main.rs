@@ -25,22 +25,27 @@ fn main() {
     let cli = Cli::from_args();
     let file_lines = read_lines(cli.input);
     if let Ok(lines) = file_lines {
-        let mut fishes: Vec<usize> = lines
+        let fishes: Vec<usize> = lines
             .filter_map(Result::ok)
-            .collect::<Vec<String>>()
-            .join(",")
+            .next()
+            .unwrap()
             .split(",")
             .map(|s| s.parse().unwrap())
             .collect();
-        let mut gens = [0i64; 9];
+        let mut gens = [0u64; 9];
         for fish in fishes {
             gens[fish] += 1;
         }
-        // for _ in 0..80 {
-        for _ in 0..256 {
+        let mut part_1 = 0u64;
+        for i in 0..256 {
+            if i == 80 {
+                part_1 = gens.iter().sum()
+            }
             let [a, b, c, d, e, f, g, h, i] = gens;
             gens = [b, c, d, e, f, g, h + a, i, a];
         }
-        println!("gens: {:?}", gens.iter().sum::<i64>());
+        let part_2: u64 = gens.iter().sum();
+        println!("Part 1: {}", part_1);
+        println!("Part 2: {}", part_2);
     }
 }
