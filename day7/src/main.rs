@@ -33,19 +33,23 @@ fn calc_fuel_cost_p2(xs: &Vec<i32>, pos: i32) -> i32 {
 
 fn main() {
     let cli = Cli::from_args();
-    let file_lines = read_lines(cli.input);
-    if let Ok(lines) = file_lines {
+    if let Ok(lines) = read_lines(&cli.input) {
         let data: Vec<i32> = lines
             .filter_map(Result::ok)
-            .collect::<Vec<String>>()
-            .join(",")
+            .next()
+            .unwrap()
             .split(",")
             .map(|s| s.parse().unwrap())
             .collect();
-        let temp: Vec<i32> = (0..data.iter().max().unwrap().clone())
-            // .map(|i| calc_fuel_cost_p1(&data, i))
+        let part_1: i32 = (0..data.iter().max().unwrap().clone())
+            .map(|i| calc_fuel_cost_p1(&data, i))
+            .min()
+            .unwrap();
+        let part_2: i32 = (0..data.iter().max().unwrap().clone())
             .map(|i| calc_fuel_cost_p2(&data, i))
-            .collect();
-        println!("{:?}", temp.iter().min().unwrap());
+            .min()
+            .unwrap();
+        println!("Part 1: {}", part_1);
+        println!("Part 2: {}", part_2);
     }
 }
