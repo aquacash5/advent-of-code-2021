@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "example", about = "An example of StructOpt usage.")]
+#[structopt(name = "Day2", about = "Dive!")]
 struct Cli {
     /// Input file
     #[structopt(parse(from_os_str))]
@@ -21,7 +21,7 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Location {
     depth: i32,
     position: i32,
@@ -29,7 +29,31 @@ struct Location {
 }
 
 impl Location {
-    fn next_location(&self, instruction: String) -> Location {
+    fn next_location(&self, instruction: &String) -> Location {
+        let data = instruction.split_once(' ').unwrap();
+        let i = data.0;
+        let d = data.1.parse::<i32>().unwrap();
+        match i {
+            "forward" => Location {
+                depth: self.depth + d,
+                position: self.position,
+                aim: self.aim,
+            },
+            "down" => Location {
+                depth: self.depth,
+                position: self.position + d,
+                aim: self.aim,
+            },
+            "up" => Location {
+                depth: self.depth,
+                position: self.position - d,
+                aim: self.aim,
+            },
+            _ => *self,
+        }
+    }
+
+    fn next_location_aim(&self, instruction: &String) -> Location {
         let data = instruction.split_once(' ').unwrap();
         let i = data.0;
         let d = data.1.parse::<i32>().unwrap();
@@ -49,11 +73,7 @@ impl Location {
                 position: self.position,
                 aim: self.aim - d,
             },
-            _ => Location {
-                depth: self.depth,
-                position: self.position,
-                aim: self.aim,
-            },
+            _ => *self,
         }
     }
 }
@@ -67,9 +87,16 @@ fn main() {
         aim: 0,
     };
     if let Ok(lines) = file_lines {
-        let data: Location = lines
-            .filter_map(Result::ok)
+        let data: Vec<String> = lines.filter_map(Result::ok).collect();
+
+        let part_1 = data
+            .iter()
             .fold(init_loc, |cur, line| cur.next_location(line));
-        println!("{:?}", data.depth * data.position)
+        let part_2 = data
+            .iter()
+            .fold(init_loc, |cur, line| cur.next_location_aim(line));
+
+        println!("Part 1: {:?}", part_1.depth * part_1.position);
+        println!("Part 2: {:?}", part_2.depth * part_2.position);
     }
 }
