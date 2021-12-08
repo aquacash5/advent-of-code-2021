@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "example", about = "An example of StructOpt usage.")]
+#[structopt(name = "day3", about = "Binary Diagnostic")]
 struct Cli {
     /// Input file
     #[structopt(parse(from_os_str))]
@@ -22,36 +22,6 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-// fn main() {
-//     let cli = Cli::from_args();
-//     let file_lines = read_lines(cli.input);
-//     if let Ok(lines) = file_lines {
-//         let data: Vec<_> = lines.filter_map(Result::ok).collect();
-//         let mut binary = vec![vec!['0'; 0]; data[0].len()];
-//         for row in data {
-//             for (i, col) in row.chars().enumerate() {
-//                 binary[i].push(col)
-//             }
-//         }
-//         let (gamma, epsilon) = binary
-//             .into_iter()
-//             .map(|c| c.into_iter().counts())
-//             .map(|c| {
-//                 if c[&'0'] > c[&'1'] {
-//                     ('0', '1')
-//                 } else {
-//                     ('1', '0')
-//                 }
-//             })
-//             .fold((String::from(""), String::from("")), |v, (g, e)| {
-//                 (format!("{}{}", v.0, g), format!("{}{}", v.1, e))
-//             });
-//         let gamma = i32::from_str_radix(&gamma, 2).unwrap();
-//         let epsilon = i32::from_str_radix(&epsilon, 2).unwrap();
-//         println!("{:?} ", gamma * epsilon);
-//     }
-// }
-
 fn common_for_column(it: &Vec<String>, col: usize) -> char {
     let data = it.into_iter().map(|s| s.chars().nth(col).unwrap()).counts();
     if data.get(&'0').unwrap_or(&0) > data.get(&'1').unwrap_or(&0) {
@@ -61,40 +31,71 @@ fn common_for_column(it: &Vec<String>, col: usize) -> char {
     }
 }
 
+fn calculate_gamma(it: &Vec<String>) -> String {
+    (0..it[0].len())
+        .map(|col| common_for_column(it, col))
+        .collect()
+}
+
+fn calculate_epsilon(it: &Vec<String>) -> String {
+    (0..it[0].len())
+        .map(|col| {
+            if common_for_column(it, col) == '0' {
+                '1'
+            } else {
+                '0'
+            }
+        })
+        .collect()
+}
+
+fn find_oxy(it: &Vec<String>) -> String {
+    fn find_oxy_part(it: &Vec<String>, col: usize) -> String {
+        let common = common_for_column(it, col);
+        let new_it: Vec<String> = it
+            .into_iter()
+            .cloned()
+            .filter(|s| s.chars().nth(col).unwrap() == common)
+            .collect();
+        if new_it.len() <= 1 {
+            new_it[0].clone()
+        } else {
+            find_oxy_part(&new_it, col + 1)
+        }
+    }
+    find_oxy_part(it, 0)
+}
+
+fn find_co2(it: &Vec<String>) -> String {
+    fn find_co2_part(it: &Vec<String>, col: usize) -> String {
+        let common = common_for_column(it, col);
+        let new_it: Vec<String> = it
+            .into_iter()
+            .cloned()
+            .filter(|s| s.chars().nth(col).unwrap() != common)
+            .collect();
+        if new_it.len() <= 1 {
+            new_it[0].clone()
+        } else {
+            find_co2_part(&new_it, col + 1)
+        }
+    }
+    find_co2_part(it, 0)
+}
+
 fn main() {
     let cli = Cli::from_args();
     let file_lines = read_lines(cli.input);
     if let Ok(lines) = file_lines {
         let data: Vec<_> = lines.filter_map(Result::ok).collect();
-        let mut temp_lines = data.clone();
-        for col in 0..temp_lines[0].len() {
-            let common = common_for_column(&temp_lines, col);
-            temp_lines = temp_lines
-                .into_iter()
-                .filter(|s| s.chars().nth(col).unwrap() == common)
-                .collect();
-            if temp_lines.len() == 1 {
-                break;
-            }
-        }
-        let oxygen = i32::from_str_radix(&temp_lines[0], 2).unwrap();
 
-        let mut temp_lines = data.clone();
-        for col in 0..temp_lines[0].len() {
-            let common = common_for_column(&temp_lines, col);
-            temp_lines = temp_lines
-                .into_iter()
-                .filter(|s| s.chars().nth(col).unwrap() != common)
-                .collect();
-            if temp_lines.len() == 1 {
-                break;
-            }
-        }
-        let co2 = i32::from_str_radix(&temp_lines[0], 2).unwrap();
+        let gamma = i32::from_str_radix(&calculate_gamma(&data), 2).unwrap();
+        let epsilon = i32::from_str_radix(&calculate_epsilon(&data), 2).unwrap();
 
-        println!("Oxygen: {:?}", oxygen);
-        println!("CO2: {:?}", co2);
+        let oxygen = i32::from_str_radix(&find_oxy(&data), 2).unwrap();
+        let co2 = i32::from_str_radix(&find_co2(&data), 2).unwrap();
 
-        println!("Life Support: {:?}", oxygen * co2);
+        println!("Part 1: {:?}", gamma * epsilon);
+        println!("Part 2: {:?}", oxygen * co2);
     }
 }
