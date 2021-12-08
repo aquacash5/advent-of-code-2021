@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "example", about = "An example of StructOpt usage.")]
+#[structopt(name = "Day1", about = "Sonar Sweep")]
 struct Cli {
     /// Input file
     #[structopt(parse(from_os_str))]
@@ -26,15 +26,23 @@ fn main() {
     let cli = Cli::from_args();
     let file_lines = read_lines(cli.input);
     if let Ok(lines) = file_lines {
-        let data: i32 = lines
+        let data: Vec<i32> = lines
             .filter_map(Result::ok)
             .filter_map(|s| s.parse::<i32>().ok())
-            // Enable to solve part 2
-            // .tuple_windows()
-            // .map(|(a, b, c)| a + b + c)
+            .collect();
+        let part_1: i32 = data
+            .iter()
             .tuple_windows()
             .map(|(a, b)| if a < b { 1 } else { 0 })
             .sum();
-        println!("{:?}", data);
+        let part_2: i32 = data
+            .iter()
+            .tuple_windows()
+            .map(|(a, b, c)| a + b + c)
+            .tuple_windows()
+            .map(|(a, b)| if a < b { 1 } else { 0 })
+            .sum();
+        println!("Part 1: {:?}", part_1);
+        println!("Part 2: {:?}", part_2);
     }
 }
