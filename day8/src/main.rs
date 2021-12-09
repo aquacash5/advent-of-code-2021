@@ -144,11 +144,12 @@ fn main() {
             .iter()
             .flat_map(|s| s.output.iter().filter(|i| part_1_filter.contains(&i.len())))
             .count();
-        println!("Part 1: {:?}", part_1);
         let part_2: u32 = data
             .iter()
             .map(|sd| sd.get_output().parse::<u32>().unwrap())
             .sum();
+
+        println!("Part 1: {:?}", part_1);
         println!("Part 2: {:?}", part_2);
     }
 }
