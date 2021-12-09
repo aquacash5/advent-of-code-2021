@@ -13,12 +13,12 @@ struct Cli {
     input: PathBuf,
 }
 
-const TWO_DECODE: [usize; 4] = [2, 5, 7, 7];
-const THREE_DECODE: [usize; 4] = [0, 2, 5, 7];
+const TWO_DECODE: [usize; 2] = [2, 5];
+const THREE_DECODE: [usize; 3] = [0, 2, 5];
 const FOUR_DECODE: [usize; 4] = [1, 2, 3, 5];
-const FIVE_DECODE: [usize; 4] = [0, 3, 6, 7];
+const FIVE_DECODE: [usize; 3] = [0, 3, 6];
 const SIX_DECODE: [usize; 4] = [0, 1, 5, 6];
-const NONE_DECODE: [usize; 4] = [7, 7, 7, 7];
+const NONE_DECODE: [usize; 0] = [];
 
 const ZERO_DIGIT: u8 = 0b1110111u8;
 const ONE_DIGIT: u8 = 0b0100100u8;
@@ -72,35 +72,29 @@ impl SegmentData {
     fn calculate_wiring(&mut self) {
         let mut options = vec![BTreeSet::from_iter("abcdefg".chars()); 7];
         for s in &self.input {
-            let f = match s.len() {
-                2 => TWO_DECODE,
-                3 => THREE_DECODE,
-                4 => FOUR_DECODE,
-                5 => FIVE_DECODE,
-                6 => SIX_DECODE,
-                _ => NONE_DECODE,
+            let f: &[usize] = match s.len() {
+                2 => &TWO_DECODE,
+                3 => &THREE_DECODE,
+                4 => &FOUR_DECODE,
+                5 => &FIVE_DECODE,
+                6 => &SIX_DECODE,
+                _ => &NONE_DECODE,
             };
             for c in "abcdefg".chars().filter(|c| !s.contains(*c)) {
                 for p in f {
-                    if p < 7 {
-                        options[p].remove(&c);
-                    }
+                    options[*p].remove(&c);
                 }
             }
         }
-        let mut answers = ['0'; 7];
-        while answers.contains(&'0') {
+        while options.iter().any(|s| s.len() > 0) {
             for (i, s) in options.iter().enumerate().filter(|(_, s)| s.len() == 1) {
-                answers[i] = s.iter().fold('0', |_, c| *c);
+                self.wiring.insert(s.iter().fold('0', |_, c| *c), i as u8);
             }
             for c in options.iter_mut() {
-                for a in answers {
+                for (a, _) in self.wiring.iter() {
                     c.remove(&a);
                 }
             }
-        }
-        for (i, s) in answers.iter().enumerate() {
-            self.wiring.insert(*s, i as u8);
         }
     }
 
