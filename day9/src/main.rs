@@ -1,9 +1,8 @@
 use ndarray::Array2;
 use queues::{queue, IsQueue, Queue};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::ops::Index;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
