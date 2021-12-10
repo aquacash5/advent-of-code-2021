@@ -63,24 +63,24 @@ fn main() {
             while let Ok((i, j)) = queue.remove() {
                 if !seen.contains(&(i, j)) {
                     seen.insert((i, j));
-                    if let Some(h) = data.get((i.wrapping_sub(1), j)) {
+                    if let Some(h) = data.get((i.saturating_sub(1), j)) {
                         if *h != 9 {
-                            queue.add((i.wrapping_sub(1), j));
+                            queue.add((i.saturating_sub(1), j)).unwrap();
                         }
                     }
-                    if let Some(h) = data.get((i.wrapping_add(1), j)) {
+                    if let Some(h) = data.get((i.saturating_add(1), j)) {
                         if *h != 9 {
-                            queue.add((i.wrapping_add(1), j));
+                            queue.add((i.saturating_add(1), j)).unwrap();
                         }
                     }
-                    if let Some(h) = data.get((i, j.wrapping_sub(1))) {
+                    if let Some(h) = data.get((i, j.saturating_sub(1))) {
                         if *h != 9 {
-                            queue.add((i, j.wrapping_sub(1)));
+                            queue.add((i, j.saturating_sub(1))).unwrap();
                         }
                     }
-                    if let Some(h) = data.get((i, j.wrapping_add(1))) {
+                    if let Some(h) = data.get((i, j.saturating_add(1))) {
                         if *h != 9 {
-                            queue.add((i, j.wrapping_add(1)));
+                            queue.add((i, j.saturating_add(1))).unwrap();
                         }
                     }
                     size += 1;
