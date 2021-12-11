@@ -22,6 +22,8 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
+const GRID_SIZE: usize = 10;
+
 #[derive(Debug, Clone, Copy)]
 struct Octopus {
     energy_level: u8,
@@ -30,6 +32,8 @@ struct Octopus {
 }
 
 impl Octopus {
+    const MAX_ENERGY: u8 = 9;
+
     fn new(energy_level: u8) -> Octopus {
         Octopus {
             energy_level,
@@ -42,7 +46,7 @@ impl Octopus {
         if !self.flashed {
             self.energy_level += 1;
         }
-        if self.energy_level > 9 {
+        if self.energy_level > Octopus::MAX_ENERGY {
             self.flashes += 1;
             self.flashed = true;
             self.energy_level = 0;
@@ -65,16 +69,11 @@ fn flash_grid(grid: &mut Array2<Octopus>, (x, y): (usize, usize)) {
     let x_0 = Some(x);
     let y_0 = Some(y);
 
+    #[rustfmt::skip]
     let o: Vec<_> = [
-        (x_s, y_s),
-        (x_s, y_0),
-        (x_s, y_a),
-        (x_0, y_s),
-        (x_0, y_0),
-        (x_0, y_a),
-        (x_a, y_s),
-        (x_a, y_0),
-        (x_a, y_a),
+        (x_s, y_s), (x_s, y_0), (x_s, y_a),
+        (x_0, y_s), /*Center*/  (x_0, y_a),
+        (x_a, y_s), (x_a, y_0), (x_a, y_a),
     ]
     .iter()
     .filter_map(|o_pair| match o_pair {
@@ -91,8 +90,8 @@ fn flash_grid(grid: &mut Array2<Octopus>, (x, y): (usize, usize)) {
 }
 
 fn step_grid(grid: &mut Array2<Octopus>) {
-    for x in 0..10_usize {
-        for y in 0..10_usize {
+    for x in 0..GRID_SIZE {
+        for y in 0..GRID_SIZE {
             if grid.get_mut((x, y)).map(|o| o.charge()).unwrap_or(false) {
                 flash_grid(grid, (x, y));
             }
@@ -105,7 +104,7 @@ fn main() {
     let file_lines = read_lines(cli.input);
     if let Ok(lines) = file_lines {
         let data: Array2<Octopus> = Array2::from_shape_vec(
-            (10, 10),
+            (GRID_SIZE, GRID_SIZE),
             lines
                 .filter_map(Result::ok)
                 .flat_map(|s| s.chars().collect::<Vec<char>>())
@@ -121,7 +120,7 @@ fn main() {
         }
         let part_1: u32 = mut_grid.iter().map(|o| o.flashes).sum();
 
-        let mut mut_grid = data.clone();
+        let mut mut_grid = data;
         let mut part_2: u32 = 0;
         while mut_grid.iter().map(|o| o.energy_level as u32).sum::<u32>() != 0 {
             step_grid(&mut mut_grid);
