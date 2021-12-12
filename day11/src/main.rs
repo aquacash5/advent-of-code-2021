@@ -70,7 +70,7 @@ fn flash_grid(grid: &mut Array2<Octopus>, (x, y): (usize, usize)) {
     let y_0 = Some(y);
 
     #[rustfmt::skip]
-    let o: Vec<_> = [
+    let neighbors: Vec<_> = [
         (x_s, y_s), (x_s, y_0), (x_s, y_a),
         (x_0, y_s), /*Center*/  (x_0, y_a),
         (x_a, y_s), (x_a, y_0), (x_a, y_a),
@@ -82,8 +82,8 @@ fn flash_grid(grid: &mut Array2<Octopus>, (x, y): (usize, usize)) {
     })
     .collect();
 
-    for c_point in o {
-        if grid.get_mut(c_point).map(|o| o.charge()).unwrap_or(false) {
+    for c_point in neighbors {
+        if grid.get_mut(c_point).map(Octopus::charge).unwrap_or(false) {
             flash_grid(grid, c_point);
         }
     }
@@ -92,7 +92,7 @@ fn flash_grid(grid: &mut Array2<Octopus>, (x, y): (usize, usize)) {
 fn step_grid(grid: &mut Array2<Octopus>) {
     for x in 0..GRID_SIZE {
         for y in 0..GRID_SIZE {
-            if grid.get_mut((x, y)).map(|o| o.charge()).unwrap_or(false) {
+            if grid.get_mut((x, y)).map(Octopus::charge).unwrap_or(false) {
                 flash_grid(grid, (x, y));
             }
         }
@@ -116,7 +116,7 @@ fn main() {
         let mut mut_grid = data.clone();
         for _ in 0..100 {
             step_grid(&mut mut_grid);
-            mut_grid.map_mut(|o| o.reset());
+            mut_grid.map_mut(Octopus::reset);
         }
         let part_1: u32 = mut_grid.iter().map(|o| o.flashes).sum();
 
@@ -124,7 +124,7 @@ fn main() {
         let mut part_2: u32 = 0;
         while mut_grid.iter().map(|o| o.energy_level as u32).sum::<u32>() != 0 {
             step_grid(&mut mut_grid);
-            mut_grid.map_mut(|o| o.reset());
+            mut_grid.map_mut(Octopus::reset);
             part_2 += 1;
         }
 
