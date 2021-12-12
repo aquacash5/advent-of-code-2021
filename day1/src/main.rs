@@ -1,5 +1,4 @@
-use itertools::Itertools;
-use std::fs::File;
+use std::fs::{read_to_string, File};
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
@@ -26,22 +25,12 @@ fn main() {
     let cli = Cli::from_args();
     let file_lines = read_lines(cli.input);
     if let Ok(lines) = file_lines {
-        let data: Vec<i32> = lines
+        let data: Vec<u32> = lines
             .filter_map(Result::ok)
-            .filter_map(|s| s.parse::<i32>().ok())
+            .filter_map(|s| s.parse::<u32>().ok())
             .collect();
-        let part_1: i32 = data
-            .iter()
-            .tuple_windows()
-            .map(|(a, b)| if a < b { 1 } else { 0 })
-            .sum();
-        let part_2: i32 = data
-            .iter()
-            .tuple_windows()
-            .map(|(a, b, c)| a + b + c)
-            .tuple_windows()
-            .map(|(a, b)| if a < b { 1 } else { 0 })
-            .sum();
+        let part_1 = data.windows(2).filter(|a| a.first() < a.last()).count();
+        let part_2 = data.windows(4).filter(|a| a.first() < a.last()).count();
         println!("Part 1: {:?}", part_1);
         println!("Part 2: {:?}", part_2);
     }
