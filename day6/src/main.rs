@@ -41,8 +41,10 @@ fn main() {
             if i == 80 {
                 part_1 = gens.iter().sum()
             }
-            let [a, b, c, d, e, f, g, h, i] = gens;
-            gens = [b, c, d, e, f, g, h + a, i, a];
+            // let [a, b, c, d, e, f, g, h, i] = gens;
+            // gens = [b, c, d, e, f, g, h + a, i, a];
+            gens.rotate_left(1);
+            gens[6] += gens[8];
         }
         let part_2: u64 = gens.iter().sum();
         println!("Part 1: {}", part_1);
